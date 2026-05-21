@@ -11,13 +11,14 @@
         <router-link to="/base-config/nameplate-template" class="sub-tab" active-class="active">配置铭牌模板</router-link>
       </div>
 
-      <div class="banner">
+      <div class="banner" :class="{ 'banner-submitted': submitted }">
         <div class="banner-content">
           <div class="banner-title-row">
             <span class="tenant-badge">【{{ form.enterpriseShortName || '租户名称' }}】</span>
-            <span class="review-badge">【{{ form.reviewStatus || '审核状态' }}】</span>
+            <span class="review-badge" :class="{ 'status-pending': submitted }">【{{ submitted ? '待审核' : (form.reviewStatus || '审核状态') }}】</span>
           </div>
-          <p class="banner-desc">企业注册是工业互联标识体系中的基础环节，请准确填写以下信息完成入驻申请。审核通过后您将获得唯一的工业互联标识节点编码。</p>
+          <p v-if="!submitted" class="banner-desc">企业注册是工业互联标识体系中的基础环节，请准确填写以下信息完成入驻申请。审核通过后您将获得唯一的工业互联标识节点编码。</p>
+          <p v-else class="banner-desc">您的入驻申请已成功提交，请耐心等待平台审核。审核通过后将为您开通工业互联标识服务。</p>
         </div>
       </div>
 
@@ -27,19 +28,19 @@
           <div class="form-grid">
             <div class="form-item required">
               <label>企业全称</label>
-              <input v-model="form.enterpriseFullName" placeholder="默认认入用户名称" />
+              <input v-model="form.enterpriseFullName" placeholder="默认认入用户名称" :disabled="submitted" />
             </div>
             <div class="form-item required">
               <label>统一信用代码</label>
-              <input v-model="form.creditCode" placeholder="请输入" />
+              <input v-model="form.creditCode" placeholder="请输入" :disabled="submitted" />
             </div>
             <div class="form-item required">
               <label>企业简称</label>
-              <input v-model="form.enterpriseShortName" placeholder="请输入" />
+              <input v-model="form.enterpriseShortName" placeholder="请输入" :disabled="submitted" />
             </div>
             <div class="form-item required">
               <label>所属行业</label>
-              <select v-model="form.industry">
+              <select v-model="form.industry" :disabled="submitted">
                 <option value="">请选择</option>
                 <option value="制造业">制造业</option>
                 <option value="能源">能源</option>
@@ -52,20 +53,20 @@
             <div class="form-item required full-width">
               <label>注册地址</label>
               <div class="address-row">
-                <select v-model="form.province" class="addr-select" @change="onProvinceChange">
+                <select v-model="form.province" class="addr-select" :disabled="submitted" @change="onProvinceChange">
                   <option value="">请选择省</option>
                   <option value="北京市">北京市</option>
                   <option value="广东省">广东省</option>
                   <option value="浙江省">浙江省</option>
                 </select>
-                <select v-model="form.city" class="addr-select">
+                <select v-model="form.city" class="addr-select" :disabled="submitted">
                   <option value="">请选择市</option>
                   <option value="北京市">北京市</option>
                   <option value="广州市">广州市</option>
                   <option value="深圳市">深圳市</option>
                   <option value="杭州市">杭州市</option>
                 </select>
-                <select v-model="form.district" class="addr-select">
+                <select v-model="form.district" class="addr-select" :disabled="submitted">
                   <option value="">请选择区</option>
                   <option value="朝阳区">朝阳区</option>
                   <option value="海淀区">海淀区</option>
@@ -77,7 +78,7 @@
             </div>
             <div class="form-item full-width">
               <label>详细地址</label>
-              <input v-model="form.detailAddress" placeholder="请输入" />
+              <input v-model="form.detailAddress" placeholder="请输入" :disabled="submitted" />
             </div>
           </div>
         </section>
@@ -87,15 +88,15 @@
           <div class="form-grid">
             <div class="form-item required">
               <label>法人姓名</label>
-              <input v-model="form.legalPersonName" placeholder="请输入" />
+              <input v-model="form.legalPersonName" placeholder="请输入" :disabled="submitted" />
             </div>
             <div class="form-item required">
               <label>法人身份证号</label>
-              <input v-model="form.legalPersonId" placeholder="请输入" />
+              <input v-model="form.legalPersonId" placeholder="请输入" :disabled="submitted" />
             </div>
             <div class="form-item required">
               <label>法人手机号</label>
-              <input v-model="form.legalPersonPhone" placeholder="请输入" />
+              <input v-model="form.legalPersonPhone" placeholder="请输入" :disabled="submitted" />
             </div>
           </div>
         </section>
@@ -105,15 +106,15 @@
           <div class="form-grid">
             <div class="form-item required">
               <label>联系人姓名</label>
-              <input v-model="form.contactName" placeholder="请输入" />
+              <input v-model="form.contactName" placeholder="请输入" :disabled="submitted" />
             </div>
             <div class="form-item required">
               <label>联系方式</label>
-              <input v-model="form.contactPhone" placeholder="请输入" />
+              <input v-model="form.contactPhone" placeholder="请输入" :disabled="submitted" />
             </div>
             <div class="form-item required">
               <label>邮箱</label>
-              <input v-model="form.contactEmail" placeholder="请输入" />
+              <input v-model="form.contactEmail" placeholder="请输入" :disabled="submitted" />
             </div>
           </div>
         </section>
@@ -123,10 +124,10 @@
           <div class="upload-grid">
             <div class="upload-item required">
               <label>营业执照</label>
-              <div class="upload-area" @click="triggerUpload('businessLicense')">
+              <div class="upload-area" :class="{ disabled: submitted }" @click="submitted ? null : triggerUpload('businessLicense')">
                 <div v-if="form.businessLicense" class="upload-preview">
                   <span class="file-name">{{ form.businessLicense }}</span>
-                  <span class="file-remove" @click.stop="removeFile('businessLicense')">✕</span>
+                  <span v-if="!submitted" class="file-remove" @click.stop="removeFile('businessLicense')">✕</span>
                 </div>
                 <div v-else class="upload-placeholder">
                   <span class="upload-icon">+</span>
@@ -136,10 +137,10 @@
             </div>
             <div class="upload-item required">
               <label>法人身份证正照</label>
-              <div class="upload-area" @click="triggerUpload('legalIdFront')">
+              <div class="upload-area" :class="{ disabled: submitted }" @click="submitted ? null : triggerUpload('legalIdFront')">
                 <div v-if="form.legalIdFront" class="upload-preview">
                   <span class="file-name">{{ form.legalIdFront }}</span>
-                  <span class="file-remove" @click.stop="removeFile('legalIdFront')">✕</span>
+                  <span v-if="!submitted" class="file-remove" @click.stop="removeFile('legalIdFront')">✕</span>
                 </div>
                 <div v-else class="upload-placeholder">
                   <span class="upload-icon">+</span>
@@ -149,10 +150,10 @@
             </div>
             <div class="upload-item required">
               <label>法人身份证反照</label>
-              <div class="upload-area" @click="triggerUpload('legalIdBack')">
+              <div class="upload-area" :class="{ disabled: submitted }" @click="submitted ? null : triggerUpload('legalIdBack')">
                 <div v-if="form.legalIdBack" class="upload-preview">
                   <span class="file-name">{{ form.legalIdBack }}</span>
-                  <span class="file-remove" @click.stop="removeFile('legalIdBack')">✕</span>
+                  <span v-if="!submitted" class="file-remove" @click.stop="removeFile('legalIdBack')">✕</span>
                 </div>
                 <div v-else class="upload-placeholder">
                   <span class="upload-icon">+</span>
@@ -170,6 +171,7 @@
             placeholder="可选，用于二级节点备案信息"
             class="intro-textarea"
             rows="4"
+            :disabled="submitted"
           ></textarea>
         </section>
 
@@ -184,7 +186,7 @@
           </div>
         </section>
 
-        <div class="agreement-row">
+        <div v-if="!submitted" class="agreement-row">
           <label class="agreement-check">
             <input type="checkbox" v-model="form.agreed" />
             <span class="check-text">我已阅读并同意《工业互联标识服务协议》</span>
@@ -192,11 +194,28 @@
         </div>
 
         <div class="form-actions">
-          <button class="btn-secondary" @click="saveDraft">保存草稿</button>
-          <button class="btn-primary" :disabled="!form.agreed" @click="submitApplication">
-            提交审核申请
-          </button>
+          <template v-if="!submitted">
+            <button class="btn-secondary" @click="saveDraft">保存草稿</button>
+            <button class="btn-primary" :disabled="!form.agreed" @click="submitApplication">
+              提交审核申请
+            </button>
+          </template>
+          <div v-else class="submitted-info">
+            <div class="submitted-icon">✅</div>
+            <p class="submitted-text">您的企业信息已提交审核，暂不支持编辑</p>
+            <p class="submitted-hint">如需修改请联系平台管理员</p>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <!-- 提交成功弹窗 -->
+    <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
+      <div class="modal-card">
+        <div class="modal-icon">✅</div>
+        <h3 class="modal-title">提交注册申请成功！</h3>
+        <p class="modal-body">请耐心等待平台审核，审核通过后我们将为您开通工业互联标识服务。</p>
+        <button class="modal-btn" @click="closeModal">我知道了</button>
       </div>
     </div>
   </div>
@@ -211,6 +230,8 @@ export default {
   },
   data() {
     return {
+      submitted: false,
+      showModal: false,
       form: {
         enterpriseFullName: '',
         creditCode: '',
@@ -261,8 +282,12 @@ export default {
         alert('请填写统一信用代码');
         return;
       }
-      this.updateEnterpriseForm({ ...this.form, reviewStatus: '审核中' });
-      alert('审核申请已提交！（示例）');
+      this.form.reviewStatus = '待审核';
+      this.showModal = true;
+    },
+    closeModal() {
+      this.showModal = false;
+      this.submitted = true;
     }
   }
 };
@@ -564,5 +589,105 @@ export default {
 .btn-primary:disabled {
   background: #d1d5db;
   cursor: not-allowed;
+}
+
+/* 提交后状态 */
+.banner-submitted {
+  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+}
+.review-badge.status-pending {
+  color: #ffe58f;
+}
+
+.submitted-info {
+  text-align: center;
+  padding: 16px 0;
+}
+.submitted-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+.submitted-text {
+  font-size: 14px;
+  color: #374151;
+  margin: 0 0 4px;
+}
+.submitted-hint {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background: #f5f5f5;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.upload-area.disabled {
+  cursor: not-allowed;
+  background: #f5f5f5;
+}
+
+/* 弹窗 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+.modal-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 40px 48px 32px;
+  text-align: center;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.3s ease;
+}
+.modal-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 12px;
+}
+.modal-body {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.8;
+  margin: 0 0 24px;
+}
+.modal-btn {
+  padding: 10px 40px;
+  background: #1890ff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.modal-btn:hover {
+  background: #096dd9;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 </style>
