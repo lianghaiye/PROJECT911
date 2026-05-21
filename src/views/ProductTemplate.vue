@@ -537,25 +537,22 @@ export default {
         {
           id: 'sys_001',
           code: 'TPL-SYS-001',
-          name: '产品信息更新模板',
+          name: '系统全局模板',
           status: '启用',
           scope: '全局',
           scopeType: 'global',
           objects: ['全部产品'],
           type: '系统模板',
           isSystem: true,
-          fieldCount: 6,
+          fieldCount: 3,
           creator: '系统管理员',
           createTime: '2025-01-15 10:30:00',
           updater: '系统管理员',
           updateTime: '2025-03-20 14:22:00',
           fields: [
-            { code: 'product_name', name: '产品名称', type: 'text', format: '', required: true, placeholder: '请输入产品名称', charLimit: 50, options: [], defaultValue: '' },
-            { code: 'model_no', name: '规格型号', type: 'text', format: '', required: true, placeholder: '请输入规格型号', charLimit: 30, options: [], defaultValue: '' },
-            { code: 'category', name: '产品类别', type: 'radio', format: '', required: true, placeholder: '请选择产品类别', charLimit: null, options: ['水泵', '阀门', '电机', '控制器'], defaultValue: '' },
-            { code: 'mfg_date', name: '生产日期', type: 'date', format: 'yyyy-MM-dd', required: true, placeholder: '请选择日期', charLimit: null, options: [], defaultValue: '' },
-            { code: 'serial_no', name: '出厂编号', type: 'text', format: '', required: true, placeholder: '请输入出厂编号', charLimit: 40, options: [], defaultValue: '' },
-            { code: 'description', name: '产品描述', type: 'textarea', format: '', required: false, placeholder: '请输入产品描述', charLimit: 200, options: [], defaultValue: '' }
+            { code: 'product_model', name: '产品型号', type: 'text', format: '', required: true, placeholder: '请输入产品型号', charLimit: 50, options: [], defaultValue: '' },
+            { code: 'serial_no', name: '出厂编码', type: 'text', format: '', required: true, placeholder: '请输入出厂编码', charLimit: 40, options: [], defaultValue: '' },
+            { code: 'mfg_date', name: '出厂日期', type: 'date', format: 'yyyy-MM-dd', required: true, placeholder: '请选择日期', charLimit: null, options: [], defaultValue: '' }
           ]
         },
         {
