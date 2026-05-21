@@ -42,7 +42,7 @@
                 <th width="140">创建时间</th>
                 <th width="100">更新人</th>
                 <th width="140">更新时间</th>
-                <th width="140">操作</th>
+                <th width="140" class="sticky-col">操作</th>
               </tr>
             </thead>
             <tbody>
@@ -74,7 +74,7 @@
                 <td>{{ tpl.createTime }}</td>
                 <td>{{ tpl.updater }}</td>
                 <td>{{ tpl.updateTime }}</td>
-                <td class="action-cell">
+                <td class="action-cell sticky-col">
                   <a class="action-link" @click="previewTemplate(tpl)">预览</a>
                   <a class="action-link" @click="editTemplate(tpl)">编辑</a>
                   <a class="action-link danger" @click="confirmDelete(tpl)">删除</a>
@@ -170,7 +170,15 @@
           <button class="btn-close" @click="closePreview">✕</button>
         </div>
         <div class="preview-body">
-          <div class="preview-form">
+          <div class="phone-frame">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+              <div class="phone-status-bar">
+                <span class="phone-time">9:41</span>
+                <span class="phone-icons">📶 🔋</span>
+              </div>
+              <div class="phone-title">{{ previewTemplateData.name }}</div>
+              <div class="preview-form">
             <div v-for="(f, idx) in previewTemplateData.fields" :key="idx" class="preview-field">
               <label>
                 {{ f.name }}
@@ -203,6 +211,9 @@
                 </div>
               </template>
             </div>
+            </div>
+            </div>
+            <div class="phone-home-bar"></div>
           </div>
         </div>
       </div>
@@ -490,6 +501,24 @@
       </div>
     </div>
   </div>
+
+  <!-- ============ 批量启用/停用确认弹窗 ============ -->
+  <div v-if="batchConfirmVisible" class="modal-overlay" @click.self="cancelBatchAction">
+    <div class="modal-card modal-sm">
+      <div class="modal-header">
+        <h3>操作确认</h3>
+        <button class="btn-close" @click="cancelBatchAction">✕</button>
+      </div>
+      <div class="modal-body" style="text-align:center">
+        <p class="delete-confirm-icon">{{ batchActionType === 'enable' ? '✅' : '⏸️' }}</p>
+        <p>确定要{{ batchActionType === 'enable' ? '启用' : '停用' }}已选择的 <strong>{{ selectedRows.length }}</strong> 个模板吗？</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" @click="cancelBatchAction">取消</button>
+        <button class="btn btn-primary" @click="confirmBatchAction">确定</button>
+      </div>
+    </div>
+  </div>
   </div>
 </template>
 
@@ -590,7 +619,10 @@ export default {
       detailTemplate: {},
       // 删除
       deleteModalVisible: false,
-      deleteTemplate: null
+      deleteTemplate: null,
+      // 批量启用/停用确认
+      batchConfirmVisible: false,
+      batchActionType: ''
     };
   },
   computed: {
@@ -650,6 +682,11 @@ export default {
       };
     }
   },
+  watch: {
+    'createForm.scopeType'() {
+      this.createForm.objects = [];
+    }
+  },
   methods: {
     // --- 列表操作 ---
     toggleSelectAll(e) {
@@ -666,18 +703,27 @@ export default {
     },
     search() {},
     batchEnable() {
-      this.selectedRows.forEach(id => {
-        const t = this.templates.find(x => x.id === id);
-        if (t) t.status = '启用';
-      });
-      this.selectedRows = [];
+      if (this.selectedRows.length === 0) return;
+      this.batchActionType = 'enable';
+      this.batchConfirmVisible = true;
     },
     batchDisable() {
+      if (this.selectedRows.length === 0) return;
+      this.batchActionType = 'disable';
+      this.batchConfirmVisible = true;
+    },
+    confirmBatchAction() {
       this.selectedRows.forEach(id => {
         const t = this.templates.find(x => x.id === id);
-        if (t) t.status = '停用';
+        if (t) t.status = this.batchActionType === 'enable' ? '启用' : '停用';
       });
       this.selectedRows = [];
+      this.batchConfirmVisible = false;
+      this.batchActionType = '';
+    },
+    cancelBatchAction() {
+      this.batchConfirmVisible = false;
+      this.batchActionType = '';
     },
 
     // --- 新增/编辑模板 ---
@@ -1460,8 +1506,8 @@ export default {
   justify-content: flex-end;
 }
 .preview-panel {
-  width: 420px;
-  background: #fff;
+  width: 520px;
+  background: #f0f2f5;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -1529,6 +1575,70 @@ export default {
 .preview-radio, .preview-check {
   font-size: 13px;
   color: #9ca3af;
+}
+
+/* ---- 手机外框 ---- */
+.phone-frame {
+  width: 280px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 28px;
+  border: 3px solid #1f2937;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+.phone-notch {
+  width: 80px;
+  height: 20px;
+  background: #1f2937;
+  border-radius: 0 0 14px 14px;
+  margin: 0 auto;
+}
+.phone-screen {
+  padding: 8px 16px 16px;
+  min-height: 320px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+.phone-status-bar {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #1f2937;
+  padding: 4px 0 8px;
+}
+.phone-time {
+  font-weight: 600;
+}
+.phone-title {
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  color: #1f2937;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.phone-home-bar {
+  width: 100px;
+  height: 4px;
+  background: #1f2937;
+  border-radius: 2px;
+  margin: 8px auto;
+}
+
+/* ---- sticky 操作列 ---- */
+.data-table th.sticky-col,
+.data-table td.sticky-col {
+  position: sticky;
+  right: 0;
+  background: #fff;
+  z-index: 1;
+  box-shadow: -2px 0 4px rgba(0,0,0,0.06);
+}
+.data-table th.sticky-col {
+  z-index: 2;
+  background: #fafafa;
 }
 
 /* ---- 详情页 ---- */
