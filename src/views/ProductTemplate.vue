@@ -47,7 +47,9 @@
             </thead>
             <tbody>
               <tr v-for="tpl in filteredTemplates" :key="tpl.id">
-                <td><input type="checkbox" :checked="selectedRows.includes(tpl.id)" @change="toggleRow(tpl.id)" /></td>
+                <td>
+                  <input type="checkbox" v-if="!tpl.isSystem" :checked="selectedRows.includes(tpl.id)" @change="toggleRow(tpl.id)" />
+                </td>
                 <td>
                   <span class="status-tag" :class="tpl.status === '启用' ? 'status-on' : 'status-off'">
                     {{ tpl.status }}
@@ -68,7 +70,7 @@
                     <span class="obj-more" v-if="tpl.objects.length > 2">+{{ tpl.objects.length - 2 }}</span>
                   </span>
                 </td>
-                <td><span class="type-tag">{{ tpl.type }}</span></td>
+                <td><span class="type-tag" :class="{ 'system-tag': tpl.isSystem }">{{ tpl.type }}</span></td>
                 <td>{{ tpl.fieldCount }}</td>
                 <td>{{ tpl.creator }}</td>
                 <td>{{ tpl.createTime }}</td>
@@ -76,8 +78,10 @@
                 <td>{{ tpl.updateTime }}</td>
                 <td class="action-cell sticky-col">
                   <a class="action-link" @click="previewTemplate(tpl)">预览</a>
-                  <a class="action-link" @click="editTemplate(tpl)">编辑</a>
-                  <a class="action-link danger" @click="confirmDelete(tpl)">删除</a>
+                  <template v-if="!tpl.isSystem">
+                    <a class="action-link" @click="editTemplate(tpl)">编辑</a>
+                    <a class="action-link danger" @click="confirmDelete(tpl)">删除</a>
+                  </template>
                 </td>
               </tr>
             </tbody>
@@ -479,43 +483,42 @@
 
   <!-- ============ 删除确认弹窗 ============ -->
   <div v-if="deleteModalVisible" class="modal-overlay" @click.self="closeDeleteModal">
-    <div class="modal-card modal-sm">
-      <div class="modal-header">
-        <h3>提示</h3>
-        <button class="btn-close" @click="closeDeleteModal">✕</button>
+    <div class="confirm-card">
+      <div class="confirm-icon-wrap">
+        <span class="confirm-icon-warn">!</span>
       </div>
-      <div class="modal-body" style="text-align:center">
-        <div v-if="deleteTemplate && deleteTemplate.status === '启用'">
-          <p class="delete-warn-icon">⚠️</p>
-          <p class="delete-warn-text">该模板处于<strong>启用</strong>状态，无法删除！请先停用后再进行删除操作。</p>
-        </div>
-        <div v-else>
-          <p class="delete-confirm-icon">⚠️</p>
-          <p>确定要删除模板 <strong>"{{ deleteTemplate ? deleteTemplate.name : '' }}"</strong> 吗？删除后不可恢复。</p>
-        </div>
+      <h3 class="confirm-title">提示</h3>
+      <div v-if="deleteTemplate && deleteTemplate.status === '启用'" class="confirm-body">
+        该模板当前处于<strong>启用</strong>状态，无法执行删除操作。请先停用该模板后再进行删除。
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-default" @click="closeDeleteModal">取消</button>
-        <button v-if="deleteTemplate && deleteTemplate.status !== '启用'" class="btn btn-danger" @click="doDelete">确认删除</button>
-        <button v-else class="btn btn-primary" @click="closeDeleteModal">知道了</button>
+      <div v-else class="confirm-body">
+        确定要删除模板 <strong>"{{ deleteTemplate ? deleteTemplate.name : '' }}"</strong> 吗？删除后数据将无法恢复。
+      </div>
+      <div class="confirm-footer">
+        <button class="btn btn-default btn-pill" @click="closeDeleteModal">取消</button>
+        <button
+          v-if="deleteTemplate && deleteTemplate.status !== '启用'"
+          class="btn btn-danger btn-pill"
+          @click="doDelete"
+        >确认删除</button>
+        <button v-else class="btn btn-primary btn-pill" @click="closeDeleteModal">我知道了</button>
       </div>
     </div>
   </div>
 
   <!-- ============ 批量启用/停用确认弹窗 ============ -->
   <div v-if="batchConfirmVisible" class="modal-overlay" @click.self="cancelBatchAction">
-    <div class="modal-card modal-sm">
-      <div class="modal-header">
-        <h3>操作确认</h3>
-        <button class="btn-close" @click="cancelBatchAction">✕</button>
+    <div class="confirm-card">
+      <div class="confirm-icon-wrap">
+        <span class="confirm-icon-warn">!</span>
       </div>
-      <div class="modal-body" style="text-align:center">
-        <p class="delete-confirm-icon">{{ batchActionType === 'enable' ? '✅' : '⏸️' }}</p>
-        <p>确定要{{ batchActionType === 'enable' ? '启用' : '停用' }}已选择的 <strong>{{ selectedRows.length }}</strong> 个模板吗？</p>
+      <h3 class="confirm-title">操作确认</h3>
+      <div class="confirm-body">
+        确定要{{ batchActionType === 'enable' ? '启用' : '停用' }}已选择的 <strong>{{ selectedRows.length }}</strong> 个模板吗？
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-default" @click="cancelBatchAction">取消</button>
-        <button class="btn btn-primary" @click="confirmBatchAction">确定</button>
+      <div class="confirm-footer">
+        <button class="btn btn-default btn-pill" @click="cancelBatchAction">取消</button>
+        <button class="btn btn-primary btn-pill" @click="confirmBatchAction">确定</button>
       </div>
     </div>
   </div>
@@ -532,15 +535,16 @@ export default {
       // 预设模板列表
       templates: [
         {
-          id: 'a1',
+          id: 'sys_001',
           code: 'TPL-SYS-001',
-          name: '产品信息更新模板-基础版',
+          name: '产品信息更新模板',
           status: '启用',
-          scope: '单产品',
-          scopeType: 'single',
-          objects: ['智能水泵A1', '智能水泵B2', '智能水泵C3'],
-          type: '系统预设',
-          fieldCount: 5,
+          scope: '全局',
+          scopeType: 'global',
+          objects: ['全部产品'],
+          type: '系统模板',
+          isSystem: true,
+          fieldCount: 6,
           creator: '系统管理员',
           createTime: '2025-01-15 10:30:00',
           updater: '系统管理员',
@@ -550,43 +554,20 @@ export default {
             { code: 'model_no', name: '规格型号', type: 'text', format: '', required: true, placeholder: '请输入规格型号', charLimit: 30, options: [], defaultValue: '' },
             { code: 'category', name: '产品类别', type: 'radio', format: '', required: true, placeholder: '请选择产品类别', charLimit: null, options: ['水泵', '阀门', '电机', '控制器'], defaultValue: '' },
             { code: 'mfg_date', name: '生产日期', type: 'date', format: 'yyyy-MM-dd', required: true, placeholder: '请选择日期', charLimit: null, options: [], defaultValue: '' },
+            { code: 'serial_no', name: '出厂编号', type: 'text', format: '', required: true, placeholder: '请输入出厂编号', charLimit: 40, options: [], defaultValue: '' },
             { code: 'description', name: '产品描述', type: 'textarea', format: '', required: false, placeholder: '请输入产品描述', charLimit: 200, options: [], defaultValue: '' }
           ]
         },
         {
           id: 'a2',
-          code: 'TPL-SYS-002',
-          name: '产品信息更新模板-详细版',
-          status: '启用',
-          scope: '产品类别',
-          scopeType: 'category',
-          objects: ['水泵', '阀门'],
-          type: '系统预设',
-          fieldCount: 8,
-          creator: '系统管理员',
-          createTime: '2025-01-15 10:35:00',
-          updater: '系统管理员',
-          updateTime: '2025-04-10 09:15:00',
-          fields: [
-            { code: 'product_name', name: '产品名称', type: 'text', format: '', required: true, placeholder: '请输入产品名称', charLimit: 50, options: [], defaultValue: '' },
-            { code: 'model_no', name: '规格型号', type: 'text', format: '', required: true, placeholder: '请输入规格型号', charLimit: 30, options: [], defaultValue: '' },
-            { code: 'category', name: '产品类别', type: 'radio', format: '', required: true, placeholder: '请选择', charLimit: null, options: ['水泵', '阀门', '电机', '控制器'], defaultValue: '' },
-            { code: 'material', name: '材质', type: 'checkbox', format: '', required: false, placeholder: '请选择材质', charLimit: null, options: ['不锈钢', '铸铁', '铜', '塑料'], defaultValue: '' },
-            { code: 'weight', name: '重量(kg)', type: 'number', format: '0.00', required: false, placeholder: '请输入重量', charLimit: null, options: [], defaultValue: '' },
-            { code: 'power', name: '功率(kW)', type: 'number', format: '0.00', required: false, placeholder: '请输入功率', charLimit: null, options: [], defaultValue: '' },
-            { code: 'mfg_date', name: '生产日期', type: 'date', format: 'yyyy-MM-dd', required: true, placeholder: '请选择日期', charLimit: null, options: [], defaultValue: '' },
-            { code: 'description', name: '产品描述', type: 'textarea', format: '', required: false, placeholder: '请输入', charLimit: 200, options: [], defaultValue: '' }
-          ]
-        },
-        {
-          id: 'a3',
           code: 'TPL-USR-001',
           name: '电机类产品模板',
           status: '停用',
           scope: '单产品',
           scopeType: 'single',
           objects: ['智能电机X1', '智能电机X2'],
-          type: '用户自定义',
+          type: '自定义模板',
+          isSystem: false,
           fieldCount: 3,
           creator: '张三',
           createTime: '2025-05-08 16:20:00',
@@ -634,8 +615,9 @@ export default {
       );
     },
     isAllSelected() {
-      return this.filteredTemplates.length > 0 &&
-        this.filteredTemplates.every(t => this.selectedRows.includes(t.id));
+      const selectable = this.filteredTemplates.filter(t => !t.isSystem);
+      return selectable.length > 0 &&
+        selectable.every(t => this.selectedRows.includes(t.id));
     },
     displayedProducts() {
       const all = this.allProducts;
@@ -691,7 +673,7 @@ export default {
     // --- 列表操作 ---
     toggleSelectAll(e) {
       if (e.target.checked) {
-        this.selectedRows = this.filteredTemplates.map(t => t.id);
+        this.selectedRows = this.filteredTemplates.filter(t => !t.isSystem).map(t => t.id);
       } else {
         this.selectedRows = [];
       }
@@ -745,6 +727,7 @@ export default {
       this.showCategoryDropdown = false;
     },
     editTemplate(tpl) {
+      if (tpl.isSystem) return;
       this.createForm = {
         name: tpl.name,
         scopeType: tpl.scopeType,
@@ -919,6 +902,7 @@ export default {
 
     // --- 删除 ---
     confirmDelete(tpl) {
+      if (tpl.isSystem) return;
       this.deleteTemplate = tpl;
       this.deleteModalVisible = true;
     },
@@ -1259,6 +1243,82 @@ export default {
   flex: 1;
   font-size: 13px;
   color: #6b7280;
+}
+
+/* ---- 确认弹窗圆角卡片（删除/批量操作） ---- */
+.confirm-card {
+  background: #fff;
+  border-radius: 12px;
+  width: 400px;
+  padding: 32px 32px 24px;
+  text-align: center;
+  animation: slideUp 0.3s ease;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+}
+.confirm-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  background: #fff3e0;
+  border: 3px solid #ff9800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.confirm-icon-warn {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ff9800;
+  line-height: 1;
+}
+.confirm-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 12px;
+}
+.confirm-body {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.8;
+  margin: 0 0 24px;
+}
+.confirm-footer {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+.btn-pill {
+  min-width: 100px;
+  padding: 8px 24px;
+  border-radius: 20px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-default.btn-pill {
+  background: #f5f5f5;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+}
+.btn-default.btn-pill:hover {
+  background: #e5e7eb;
+}
+.btn-primary.btn-pill {
+  background: #1890ff;
+  color: #fff;
+}
+.btn-primary.btn-pill:hover {
+  background: #096dd9;
+}
+.btn-danger.btn-pill {
+  background: #ff4d4f;
+  color: #fff;
+}
+.btn-danger.btn-pill:hover {
+  background: #cf1322;
 }
 
 /* ---- 表单通用 ---- */
@@ -1685,20 +1745,10 @@ export default {
   border-left: 3px solid #1890ff;
 }
 
-/* ---- 删除弹窗 ---- */
-.delete-warn-icon {
-  font-size: 40px;
-  margin-bottom: 12px;
-}
-.delete-warn-text {
-  font-size: 14px;
-  color: #374151;
-  line-height: 1.6;
-}
-.delete-confirm-icon {
-  font-size: 36px;
-  color: #faad14;
-  margin-bottom: 8px;
+/* ---- 类型标签 ---- */
+.type-tag.system-tag {
+  background: #e6f7ff;
+  color: #1890ff;
 }
 
 @keyframes fadeIn {
