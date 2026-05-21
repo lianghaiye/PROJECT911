@@ -11,7 +11,7 @@
         <router-link to="/base-config/nameplate-template" class="sub-tab" active-class="active">配置铭牌模板</router-link>
       </div>
 
-      <div class="banner" :class="{ 'banner-submitted': submitted }">
+      <div v-if="!submitted" class="banner">
         <div class="banner-content">
           <div class="banner-title-row">
             <span class="tenant-badge">【{{ form.enterpriseShortName || '租户名称' }}】</span>
@@ -22,7 +22,8 @@
         </div>
       </div>
 
-      <div class="form-body">
+      <!-- 编辑态表单 -->
+      <div v-if="!submitted" class="form-body">
         <section class="form-section">
           <h3 class="section-title">企业基本信息</h3>
           <div class="form-grid">
@@ -207,6 +208,121 @@
           </div>
         </div>
       </div>
+
+      <!-- 提交后只读展示 -->
+      <div v-else class="submitted-view">
+        <div class="review-header">
+          <div class="review-title-row">
+            <h3>{{ form.enterpriseFullName }}</h3>
+            <span class="review-status-tag">待审核</span>
+          </div>
+          <p class="review-tip">您的入驻申请已提交，请耐心等待平台审核。审核通过后将为您开通工业互联标识服务。</p>
+        </div>
+
+        <div class="review-cols">
+          <div class="review-col review-col-left">
+            <section class="info-section">
+              <h4 class="info-section-title">企业基本信息</h4>
+              <div class="info-table">
+                <div class="info-row">
+                  <span class="info-label">企业全称</span>
+                  <span class="info-value">{{ form.enterpriseFullName || '-' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">统一信用代码</span>
+                  <span class="info-value">{{ form.creditCode || '-' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">企业简称</span>
+                  <span class="info-value">{{ form.enterpriseShortName || '-' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">所属行业</span>
+                  <span class="info-value">{{ form.industry || '-' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">注册地址</span>
+                  <span class="info-value">{{ addressDisplay || '-' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">详细地址</span>
+                  <span class="info-value">{{ form.detailAddress || '-' }}</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="info-section">
+              <h4 class="info-section-title">法人信息</h4>
+              <div class="info-table">
+                <div class="info-row">
+                  <span class="info-label">法人姓名</span>
+                  <span class="info-value">{{ form.legalPersonName || '-' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">法人身份证号</span>
+                  <span class="info-value">{{ form.legalPersonId || '-' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">法人手机号</span>
+                  <span class="info-value">{{ form.legalPersonPhone || '-' }}</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="info-section">
+              <h4 class="info-section-title">资质认证</h4>
+              <div class="cert-grid">
+                <div class="cert-item">
+                  <div class="cert-thumb">
+                    <span v-if="form.businessLicense" class="cert-icon">📄</span>
+                    <span v-else class="cert-empty">-</span>
+                  </div>
+                  <span class="cert-name">营业执照</span>
+                </div>
+                <div class="cert-item">
+                  <div class="cert-thumb">
+                    <span v-if="form.legalIdFront" class="cert-icon">🪪</span>
+                    <span v-else class="cert-empty">-</span>
+                  </div>
+                  <span class="cert-name">法人身份证正照</span>
+                </div>
+                <div class="cert-item">
+                  <div class="cert-thumb">
+                    <span v-if="form.legalIdBack" class="cert-icon">🪪</span>
+                    <span v-else class="cert-empty">-</span>
+                  </div>
+                  <span class="cert-name">法人身份证反照</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="info-section">
+              <h4 class="info-section-title">企业简介</h4>
+              <p class="intro-text">{{ form.introduction || '暂无简介' }}</p>
+            </section>
+          </div>
+
+          <div class="review-col review-col-right">
+            <section class="info-section">
+              <h4 class="info-section-title">联系信息</h4>
+              <div class="info-table">
+                <div class="info-row">
+                  <span class="info-label">联系人</span>
+                  <span class="info-value">{{ form.contactName || '-' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">联系方式</span>
+                  <span class="info-value">{{ form.contactPhone || '-' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">邮箱</span>
+                  <span class="info-value">{{ form.contactEmail || '-' }}</span>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 提交成功弹窗 -->
@@ -226,16 +342,20 @@ import { mapState, mapMutations } from 'vuex';
 
 export default {
   computed: {
-    ...mapState(['enterpriseForm'])
+    ...mapState(['enterpriseForm']),
+    addressDisplay() {
+      const parts = [this.form.province, this.form.city, this.form.district].filter(Boolean);
+      return parts.join(' ');
+    }
   },
   data() {
     return {
       submitted: false,
       showModal: false,
       form: {
-        enterpriseFullName: '',
+        enterpriseFullName: '泵小智科技发展有限公司',
         creditCode: '',
-        enterpriseShortName: '',
+        enterpriseShortName: '泵小智科技发展有限公司',
         industry: '',
         province: '',
         city: '',
@@ -274,14 +394,6 @@ export default {
       alert('草稿已保存（示例）');
     },
     submitApplication() {
-      if (!this.form.enterpriseFullName) {
-        alert('请填写企业全称');
-        return;
-      }
-      if (!this.form.creditCode) {
-        alert('请填写统一信用代码');
-        return;
-      }
       this.form.reviewStatus = '待审核';
       this.showModal = true;
     },
@@ -591,30 +703,133 @@ export default {
   cursor: not-allowed;
 }
 
-/* 提交后状态 */
-.banner-submitted {
-  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
-}
-.review-badge.status-pending {
-  color: #ffe58f;
+/* 提交后只读展示 */
+.submitted-view {
+  padding: 0 24px 24px;
 }
 
-.submitted-info {
-  text-align: center;
-  padding: 16px 0;
+.review-header {
+  padding: 24px 0 20px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 24px;
 }
-.submitted-icon {
-  font-size: 32px;
-  margin-bottom: 8px;
+.review-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
 }
-.submitted-text {
-  font-size: 14px;
-  color: #374151;
-  margin: 0 0 4px;
+.review-title-row h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
 }
-.submitted-hint {
+.review-status-tag {
+  display: inline-block;
+  padding: 2px 10px;
   font-size: 12px;
-  color: #9ca3af;
+  color: #d48806;
+  background: #fffbe6;
+  border: 1px solid #ffe58f;
+  border-radius: 3px;
+}
+.review-tip {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.review-cols {
+  display: flex;
+  gap: 24px;
+}
+.review-col-left {
+  flex: 1;
+  min-width: 0;
+}
+.review-col-right {
+  width: 300px;
+  flex-shrink: 0;
+}
+
+.info-section {
+  background: #fafbfc;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+.info-section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 12px;
+  padding-left: 10px;
+  border-left: 3px solid #1890ff;
+}
+
+.info-table {
+  display: table;
+  width: 100%;
+}
+.info-row {
+  display: table-row;
+}
+.info-label {
+  display: table-cell;
+  padding: 6px 16px 6px 0;
+  font-size: 13px;
+  color: #6b7280;
+  white-space: nowrap;
+  width: 1%;
+  vertical-align: top;
+}
+.info-value {
+  display: table-cell;
+  padding: 6px 0;
+  font-size: 13px;
+  color: #1f2937;
+  word-break: break-all;
+}
+
+.cert-grid {
+  display: flex;
+  gap: 16px;
+}
+.cert-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.cert-thumb {
+  width: 72px;
+  height: 72px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cert-icon {
+  font-size: 28px;
+}
+.cert-empty {
+  font-size: 20px;
+  color: #d1d5db;
+}
+.cert-name {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.intro-text {
+  font-size: 13px;
+  color: #1f2937;
+  line-height: 1.8;
   margin: 0;
 }
 
