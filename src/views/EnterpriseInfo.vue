@@ -1,0 +1,568 @@
+<template>
+  <div class="enterprise-reg">
+    <div class="page-card">
+      <div class="page-header">
+        <h2>基础配置</h2>
+        <small>管理企业注册、产品模板与铭牌模板</small>
+      </div>
+      <div class="sub-tabs">
+        <router-link to="/base-config/enterprise-info" class="sub-tab" exact-active-class="active">企业信息</router-link>
+        <router-link to="/base-config/product-template" class="sub-tab" active-class="active">配置产品信息更新模板</router-link>
+        <router-link to="/base-config/nameplate-template" class="sub-tab" active-class="active">配置铭牌模板</router-link>
+      </div>
+
+      <div class="banner">
+        <div class="banner-content">
+          <div class="banner-title-row">
+            <span class="tenant-badge">【{{ form.enterpriseShortName || '租户名称' }}】</span>
+            <span class="review-badge">【{{ form.reviewStatus || '审核状态' }}】</span>
+          </div>
+          <p class="banner-desc">企业注册是工业互联标识体系中的基础环节，请准确填写以下信息完成入驻申请。审核通过后您将获得唯一的工业互联标识节点编码。</p>
+        </div>
+      </div>
+
+      <div class="form-body">
+        <section class="form-section">
+          <h3 class="section-title">企业基本信息</h3>
+          <div class="form-grid">
+            <div class="form-item required">
+              <label>企业全称</label>
+              <input v-model="form.enterpriseFullName" placeholder="默认认入用户名称" />
+            </div>
+            <div class="form-item required">
+              <label>统一信用代码</label>
+              <input v-model="form.creditCode" placeholder="请输入" />
+            </div>
+            <div class="form-item required">
+              <label>企业简称</label>
+              <input v-model="form.enterpriseShortName" placeholder="请输入" />
+            </div>
+            <div class="form-item required">
+              <label>所属行业</label>
+              <select v-model="form.industry">
+                <option value="">请选择</option>
+                <option value="制造业">制造业</option>
+                <option value="能源">能源</option>
+                <option value="交通">交通</option>
+                <option value="医疗">医疗</option>
+                <option value="农业">农业</option>
+                <option value="信息技术">信息技术</option>
+              </select>
+            </div>
+            <div class="form-item required full-width">
+              <label>注册地址</label>
+              <div class="address-row">
+                <select v-model="form.province" class="addr-select" @change="onProvinceChange">
+                  <option value="">请选择省</option>
+                  <option value="北京市">北京市</option>
+                  <option value="广东省">广东省</option>
+                  <option value="浙江省">浙江省</option>
+                </select>
+                <select v-model="form.city" class="addr-select">
+                  <option value="">请选择市</option>
+                  <option value="北京市">北京市</option>
+                  <option value="广州市">广州市</option>
+                  <option value="深圳市">深圳市</option>
+                  <option value="杭州市">杭州市</option>
+                </select>
+                <select v-model="form.district" class="addr-select">
+                  <option value="">请选择区</option>
+                  <option value="朝阳区">朝阳区</option>
+                  <option value="海淀区">海淀区</option>
+                  <option value="天河区">天河区</option>
+                  <option value="南山区">南山区</option>
+                  <option value="西湖区">西湖区</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-item full-width">
+              <label>详细地址</label>
+              <input v-model="form.detailAddress" placeholder="请输入" />
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h3 class="section-title">法人信息</h3>
+          <div class="form-grid">
+            <div class="form-item required">
+              <label>法人姓名</label>
+              <input v-model="form.legalPersonName" placeholder="请输入" />
+            </div>
+            <div class="form-item required">
+              <label>法人身份证号</label>
+              <input v-model="form.legalPersonId" placeholder="请输入" />
+            </div>
+            <div class="form-item required">
+              <label>法人手机号</label>
+              <input v-model="form.legalPersonPhone" placeholder="请输入" />
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h3 class="section-title">联系人信息</h3>
+          <div class="form-grid">
+            <div class="form-item required">
+              <label>联系人姓名</label>
+              <input v-model="form.contactName" placeholder="请输入" />
+            </div>
+            <div class="form-item required">
+              <label>联系方式</label>
+              <input v-model="form.contactPhone" placeholder="请输入" />
+            </div>
+            <div class="form-item required">
+              <label>邮箱</label>
+              <input v-model="form.contactEmail" placeholder="请输入" />
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h3 class="section-title">资质上传</h3>
+          <div class="upload-grid">
+            <div class="upload-item required">
+              <label>营业执照</label>
+              <div class="upload-area" @click="triggerUpload('businessLicense')">
+                <div v-if="form.businessLicense" class="upload-preview">
+                  <span class="file-name">{{ form.businessLicense }}</span>
+                  <span class="file-remove" @click.stop="removeFile('businessLicense')">✕</span>
+                </div>
+                <div v-else class="upload-placeholder">
+                  <span class="upload-icon">+</span>
+                  <span class="upload-text">点击上传</span>
+                </div>
+              </div>
+            </div>
+            <div class="upload-item required">
+              <label>法人身份证正照</label>
+              <div class="upload-area" @click="triggerUpload('legalIdFront')">
+                <div v-if="form.legalIdFront" class="upload-preview">
+                  <span class="file-name">{{ form.legalIdFront }}</span>
+                  <span class="file-remove" @click.stop="removeFile('legalIdFront')">✕</span>
+                </div>
+                <div v-else class="upload-placeholder">
+                  <span class="upload-icon">+</span>
+                  <span class="upload-text">点击上传</span>
+                </div>
+              </div>
+            </div>
+            <div class="upload-item required">
+              <label>法人身份证反照</label>
+              <div class="upload-area" @click="triggerUpload('legalIdBack')">
+                <div v-if="form.legalIdBack" class="upload-preview">
+                  <span class="file-name">{{ form.legalIdBack }}</span>
+                  <span class="file-remove" @click.stop="removeFile('legalIdBack')">✕</span>
+                </div>
+                <div v-else class="upload-placeholder">
+                  <span class="upload-icon">+</span>
+                  <span class="upload-text">点击上传</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h3 class="section-title">企业简介</h3>
+          <textarea
+            v-model="form.introduction"
+            placeholder="可选，用于二级节点备案信息"
+            class="intro-textarea"
+            rows="4"
+          ></textarea>
+        </section>
+
+        <section class="notice-box">
+          <div class="notice-header">📋 企业入驻须知</div>
+          <div class="notice-content">
+            <p>1. 申请企业必须为依法注册的独立法人实体，具备合法经营资质。</p>
+            <p>2. 提交的资质文件需真实有效，如发现虚假信息将不予审核通过。</p>
+            <p>3. 审核周期通常为3个工作日，期间请保持联系方式通畅。</p>
+            <p>4. 审核通过后将获得唯一企业节点编码，即标识前缀授权。</p>
+            <p>5. 入驻成功即表示同意遵守《工业互联标识服务协议》的全部条款。</p>
+          </div>
+        </section>
+
+        <div class="agreement-row">
+          <label class="agreement-check">
+            <input type="checkbox" v-model="form.agreed" />
+            <span class="check-text">我已阅读并同意《工业互联标识服务协议》</span>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-secondary" @click="saveDraft">保存草稿</button>
+          <button class="btn-primary" :disabled="!form.agreed" @click="submitApplication">
+            提交审核申请
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { mapState, mapMutations } from 'vuex';
+
+export default {
+  computed: {
+    ...mapState(['enterpriseForm'])
+  },
+  data() {
+    return {
+      form: {
+        enterpriseFullName: '',
+        creditCode: '',
+        enterpriseShortName: '',
+        industry: '',
+        province: '',
+        city: '',
+        district: '',
+        detailAddress: '',
+        legalPersonName: '',
+        legalPersonId: '',
+        legalPersonPhone: '',
+        contactName: '',
+        contactPhone: '',
+        contactEmail: '',
+        businessLicense: '',
+        legalIdFront: '',
+        legalIdBack: '',
+        introduction: '',
+        reviewStatus: '待审核',
+        agreed: false
+      }
+    };
+  },
+  methods: {
+    ...mapMutations(['updateEnterpriseForm']),
+    onProvinceChange() {
+      this.form.city = '';
+      this.form.district = '';
+    },
+    triggerUpload(field) {
+      const fakeName = `${field}_${Date.now()}.pdf`;
+      this.form[field] = fakeName;
+    },
+    removeFile(field) {
+      this.form[field] = '';
+    },
+    saveDraft() {
+      this.updateEnterpriseForm({ ...this.form, reviewStatus: '草稿' });
+      alert('草稿已保存（示例）');
+    },
+    submitApplication() {
+      if (!this.form.enterpriseFullName) {
+        alert('请填写企业全称');
+        return;
+      }
+      if (!this.form.creditCode) {
+        alert('请填写统一信用代码');
+        return;
+      }
+      this.updateEnterpriseForm({ ...this.form, reviewStatus: '审核中' });
+      alert('审核申请已提交！（示例）');
+    }
+  }
+};
+</script>
+
+<style scoped>
+.page-card {
+  background: #fff;
+  border-radius: 8px;
+}
+.page-header {
+  padding: 24px 24px 0;
+}
+.page-header h2 {
+  font-size: 18px;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+.page-header small {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.sub-tabs {
+  display: flex;
+  padding: 16px 24px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+.sub-tab {
+  padding: 10px 20px;
+  font-size: 14px;
+  color: #6b7280;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.2s;
+}
+.sub-tab:hover {
+  color: #1890ff;
+}
+.sub-tab.active {
+  color: #1890ff;
+  border-bottom-color: #1890ff;
+  font-weight: 500;
+}
+
+.banner {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  margin: 0 24px;
+  border-radius: 8px;
+  margin-top: 20px;
+  padding: 20px 24px;
+}
+.banner-content {
+  color: #fff;
+}
+.banner-title-row {
+  display: flex;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.banner-desc {
+  font-size: 13px;
+  opacity: 0.9;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.form-body {
+  padding: 24px;
+}
+
+.form-section {
+  margin-bottom: 32px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 16px;
+  padding-left: 12px;
+  border-left: 3px solid #1890ff;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.full-width {
+  grid-column: span 2;
+}
+
+.form-item label {
+  display: block;
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 6px;
+}
+.form-item.required label::before {
+  content: '*';
+  color: #dc2626;
+  margin-right: 4px;
+}
+
+.form-item input,
+.form-item select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #1f2937;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+.form-item input:focus,
+.form-item select:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24,144,255,0.1);
+}
+.form-item input::placeholder,
+.form-item select {
+  color: #9ca3af;
+}
+
+.address-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.addr-select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #9ca3af;
+  background: #fff;
+}
+
+.upload-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.upload-item label {
+  display: block;
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 6px;
+}
+.upload-item.required label::before {
+  content: '*';
+  color: #dc2626;
+  margin-right: 4px;
+}
+.upload-area {
+  border: 1px dashed #d1d5db;
+  border-radius: 4px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+}
+.upload-area:hover {
+  border-color: #1890ff;
+  background: #f0f7ff;
+}
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.upload-icon {
+  font-size: 28px;
+  color: #1890ff;
+  line-height: 1;
+}
+.upload-text {
+  font-size: 13px;
+  color: #6b7280;
+}
+.upload-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.file-name {
+  font-size: 13px;
+  color: #1890ff;
+}
+.file-remove {
+  cursor: pointer;
+  color: #dc2626;
+  font-size: 14px;
+  padding: 2px;
+}
+
+.intro-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.6;
+}
+.intro-textarea:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24,144,255,0.1);
+}
+
+.notice-box {
+  background: #e6f7ff;
+  border: 1px solid #91d5ff;
+  border-radius: 6px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+.notice-header {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0050b3;
+  margin-bottom: 10px;
+}
+.notice-content p {
+  font-size: 13px;
+  color: #003a8c;
+  line-height: 1.8;
+  margin: 0;
+}
+
+.agreement-row {
+  margin-bottom: 24px;
+}
+.agreement-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.agreement-check input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #1890ff;
+}
+.check-text {
+  color: #374151;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding-top: 8px;
+}
+.btn-secondary {
+  padding: 10px 32px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+.btn-primary {
+  padding: 10px 32px;
+  border: none;
+  background: #1890ff;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-primary:hover {
+  background: #096dd9;
+}
+.btn-primary:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+}
+</style>

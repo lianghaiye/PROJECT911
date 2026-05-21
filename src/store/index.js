@@ -42,6 +42,28 @@ export default new Vuex.Store({
       name: '铭牌模板 A',
       fields: ['产品名称', '生产批次号', '工业互联标识码']
     },
+    enterpriseForm: {
+      enterpriseFullName: '',
+      creditCode: '',
+      enterpriseShortName: '',
+      industry: '',
+      province: '',
+      city: '',
+      district: '',
+      detailAddress: '',
+      legalPersonName: '',
+      legalPersonId: '',
+      legalPersonPhone: '',
+      contactName: '',
+      contactPhone: '',
+      contactEmail: '',
+      businessLicense: '',
+      legalIdFront: '',
+      legalIdBack: '',
+      introduction: '',
+      reviewStatus: '待审核',
+      agreed: false
+    },
     labelRequests: [
       {
         id: 1,
@@ -72,6 +94,9 @@ export default new Vuex.Store({
     },
     updateEnterpriseInfo(state, payload) {
       Object.assign(state.enterpriseInfo, payload);
+    },
+    updateEnterpriseForm(state, payload) {
+      Object.assign(state.enterpriseForm, payload);
     },
     saveProductTemplate(state, payload) {
       state.productTemplate = payload;
