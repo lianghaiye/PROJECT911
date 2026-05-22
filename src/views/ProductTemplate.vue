@@ -174,50 +174,52 @@
           <button class="btn-close" @click="closePreview">✕</button>
         </div>
         <div class="preview-body">
-          <div class="phone-frame">
-            <div class="phone-notch"></div>
-            <div class="phone-screen">
-              <div class="phone-status-bar">
-                <span class="phone-time">9:41</span>
-                <span class="phone-icons">📶 🔋</span>
+          <div class="phone-scale-wrapper">
+            <div class="phone-frame">
+              <div class="phone-notch"></div>
+              <div class="phone-screen">
+                <div class="phone-status-bar">
+                  <span class="phone-time">9:41</span>
+                  <span class="phone-icons">📶 🔋</span>
+                </div>
+                <div class="phone-title">{{ previewTemplateData.name }}</div>
+                <div class="preview-form">
+                  <div v-for="(f, idx) in previewTemplateData.fields" :key="idx" class="preview-field">
+                    <label>
+                      {{ f.name }}
+                      <span v-if="f.required" class="required-star">*</span>
+                    </label>
+                    <template v-if="f.type === 'text'">
+                      <input type="text" disabled :placeholder="f.placeholder" class="preview-input" />
+                    </template>
+                    <template v-else-if="f.type === 'textarea'">
+                      <textarea disabled :placeholder="f.placeholder" class="preview-textarea" rows="3"></textarea>
+                    </template>
+                    <template v-else-if="f.type === 'number'">
+                      <input type="number" disabled :placeholder="f.placeholder" class="preview-input" />
+                    </template>
+                    <template v-else-if="f.type === 'date'">
+                      <input type="date" disabled class="preview-input" />
+                    </template>
+                    <template v-else-if="f.type === 'radio'">
+                      <div class="preview-options">
+                        <label v-for="(opt, oi) in (f.options || [])" :key="oi" class="preview-radio">
+                          <input type="radio" disabled :name="'preview_' + idx" /> {{ opt }}
+                        </label>
+                      </div>
+                    </template>
+                    <template v-else-if="f.type === 'checkbox'">
+                      <div class="preview-options">
+                        <label v-for="(opt, oi) in (f.options || [])" :key="oi" class="preview-check">
+                          <input type="checkbox" disabled /> {{ opt }}
+                        </label>
+                      </div>
+                    </template>
+                  </div>
+                </div>
               </div>
-              <div class="phone-title">{{ previewTemplateData.name }}</div>
-              <div class="preview-form">
-            <div v-for="(f, idx) in previewTemplateData.fields" :key="idx" class="preview-field">
-              <label>
-                {{ f.name }}
-                <span v-if="f.required" class="required-star">*</span>
-              </label>
-              <template v-if="f.type === 'text'">
-                <input type="text" disabled :placeholder="f.placeholder" class="preview-input" />
-              </template>
-              <template v-else-if="f.type === 'textarea'">
-                <textarea disabled :placeholder="f.placeholder" class="preview-textarea" rows="3"></textarea>
-              </template>
-              <template v-else-if="f.type === 'number'">
-                <input type="number" disabled :placeholder="f.placeholder" class="preview-input" />
-              </template>
-              <template v-else-if="f.type === 'date'">
-                <input type="date" disabled class="preview-input" />
-              </template>
-              <template v-else-if="f.type === 'radio'">
-                <div class="preview-options">
-                  <label v-for="(opt, oi) in (f.options || [])" :key="oi" class="preview-radio">
-                    <input type="radio" disabled :name="'preview_' + idx" /> {{ opt }}
-                  </label>
-                </div>
-              </template>
-              <template v-else-if="f.type === 'checkbox'">
-                <div class="preview-options">
-                  <label v-for="(opt, oi) in (f.options || [])" :key="oi" class="preview-check">
-                    <input type="checkbox" disabled /> {{ opt }}
-                  </label>
-                </div>
-              </template>
+              <div class="phone-home-bar"></div>
             </div>
-            </div>
-            </div>
-            <div class="phone-home-bar"></div>
           </div>
         </div>
       </div>
@@ -664,9 +666,29 @@ export default {
   watch: {
     'createForm.scopeType'() {
       this.createForm.objects = [];
+    },
+    previewVisible(val) {
+      if (val) {
+        this.$nextTick(() => this.updatePhoneScale());
+      }
     }
   },
+  mounted() {
+    window.addEventListener('resize', this.updatePhoneScale);
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.updatePhoneScale);
+  },
   methods: {
+    updatePhoneScale() {
+      // panel 宽 480，padding 各 16 → 可用宽 448；header 57px，padding 32px → 可用高 = vh - 89
+      const availW = 448;
+      const availH = window.innerHeight - 89;
+      const scaleW = availW / 402;
+      const scaleH = availH / 847;
+      const scale = Math.min(scaleW, scaleH, 1); // 不超过 1
+      document.documentElement.style.setProperty('--phone-scale', scale.toFixed(4));
+    },
     // --- 列表操作 ---
     toggleSelectAll(e) {
       if (e.target.checked) {
@@ -1563,7 +1585,7 @@ export default {
   justify-content: flex-end;
 }
 .preview-panel {
-  width: 520px;
+  width: 480px;
   background: #f0f2f5;
   height: 100vh;
   display: flex;
@@ -1577,16 +1599,99 @@ export default {
   align-items: center;
   padding: 16px 20px;
   border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
 }
 .preview-panel-header h4 {
   font-size: 15px;
   margin: 0;
   color: #1f2937;
 }
+/* 滚动区域：flex:1 自动占满剩余高度 */
 .preview-body {
   flex: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+/* 缩放容器：根据 panel 可用空间等比缩放手机框 */
+.phone-scale-wrapper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  width: 402px;
+  /* 缩放后的实际占用高度 = 847 * scale，容器需要匹配 */
+  height: calc(847px * var(--phone-scale, 1));
+  position: relative;
+  flex-shrink: 0;
+}
+/* 手机框：固定 402×847 */
+.phone-frame {
+  width: 402px;
+  height: 847px;
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 44px;
+  border: 8px solid #1f2937;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25), inset 0 0 0 2px #3a3a3a;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* 缩放适配：以顶部为基准，按容器高度比缩放 */
+  transform-origin: top center;
+  transform: scale(var(--phone-scale, 1));
+  position: absolute;
+  top: 0;
+  left: 50%;
+  margin-left: -201px;
+}
+.phone-notch {
+  width: 120px;
+  height: 28px;
+  background: #1f2937;
+  border-radius: 0 0 20px 20px;
+  margin: 0 auto;
+  flex-shrink: 0;
+}
+.phone-screen {
+  flex: 1;
+  padding: 6px 16px 8px;
   overflow-y: auto;
-  padding: 20px;
+}
+.phone-screen::-webkit-scrollbar {
+  width: 3px;
+}
+.phone-screen::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 2px;
+}
+.phone-status-bar {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #1f2937;
+  padding: 4px 0 6px;
+}
+.phone-time {
+  font-weight: 600;
+}
+.phone-title {
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  color: #1f2937;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.phone-home-bar {
+  width: 120px;
+  height: 4px;
+  background: #1f2937;
+  border-radius: 2px;
+  margin: 6px auto 10px;
+  flex-shrink: 0;
 }
 .preview-form {
   display: flex;
