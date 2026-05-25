@@ -88,6 +88,7 @@ body {
 }
 .app-shell {
   display: flex;
+  align-items: flex-start;
   min-height: 100vh;
 }
 .sidebar {
@@ -95,6 +96,9 @@ body {
   background: #001529;
   color: #fff;
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
   overflow-y: auto;
 }
 .sidebar-header {
