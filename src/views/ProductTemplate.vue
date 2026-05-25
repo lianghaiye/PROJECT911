@@ -17,8 +17,6 @@
         <div class="toolbar">
           <div class="toolbar-left">
             <button class="btn btn-primary" @click="openCreateModal">+ 新增模板</button>
-            <button class="btn btn-default" :disabled="selectedRows.length === 0" @click="batchEnable">启用</button>
-            <button class="btn btn-default" :disabled="selectedRows.length === 0" @click="batchDisable">停用</button>
           </div>
           <div class="toolbar-right">
             <input v-model="searchKeyword" placeholder="请输入模板编码/名称搜索" class="search-input" @keyup.enter="search" />
@@ -30,7 +28,6 @@
           <table class="data-table">
             <thead>
               <tr>
-                <th width="50"><input type="checkbox" @change="toggleSelectAll" :checked="isAllSelected" /></th>
                 <th width="80">模板状态</th>
                 <th width="110">模板编码</th>
                 <th width="180">模板名称</th>
@@ -47,9 +44,6 @@
             </thead>
             <tbody>
               <tr v-for="tpl in filteredTemplates" :key="tpl.id">
-                <td>
-                  <input type="checkbox" v-if="!tpl.isSystem" :checked="selectedRows.includes(tpl.id)" @change="toggleRow(tpl.id)" />
-                </td>
                 <td>
                   <span class="status-tag" :class="tpl.status === '启用' ? 'status-on' : 'status-off'">
                     {{ tpl.status }}
@@ -79,6 +73,7 @@
                 <td class="action-cell sticky-col">
                   <a class="action-link" @click="previewTemplate(tpl)">预览</a>
                   <template v-if="!tpl.isSystem">
+                    <a class="action-link" @click="toggleStatus(tpl)">{{ tpl.status === '启用' ? '停用' : '启用' }}</a>
                     <a class="action-link" @click="editTemplate(tpl)">编辑</a>
                     <a class="action-link danger" @click="confirmDelete(tpl)">删除</a>
                   </template>
@@ -508,22 +503,24 @@
     </div>
   </div>
 
-  <!-- ============ 批量启用/停用确认弹窗 ============ -->
-  <div v-if="batchConfirmVisible" class="modal-overlay" @click.self="cancelBatchAction">
+  <!-- ============ 单行启用/停用确认弹窗 ============ -->
+  <div v-if="rowConfirmVisible" class="modal-overlay" @click.self="cancelRowAction">
     <div class="confirm-card">
       <div class="confirm-icon-wrap">
         <span class="confirm-icon-warn">!</span>
       </div>
       <h3 class="confirm-title">操作确认</h3>
       <div class="confirm-body">
-        确定要{{ batchActionType === 'enable' ? '启用' : '停用' }}已选择的 <strong>{{ selectedRows.length }}</strong> 个模板吗？
+        确定要<strong>{{ rowConfirmAction === 'enable' ? '启用' : '停用' }}</strong>模板
+        「{{ rowConfirmTarget && rowConfirmTarget.name }}」吗？
       </div>
       <div class="confirm-footer">
-        <button class="btn btn-default btn-pill" @click="cancelBatchAction">取消</button>
-        <button class="btn btn-primary btn-pill" @click="confirmBatchAction">确定</button>
+        <button class="btn btn-default btn-pill" @click="cancelRowAction">取消</button>
+        <button class="btn btn-primary btn-pill" @click="confirmRowAction">确定</button>
       </div>
     </div>
   </div>
+
   </div>
 </template>
 
@@ -533,7 +530,6 @@ export default {
     return {
       currentView: 'list',
       searchKeyword: '',
-      selectedRows: [],
       // 预设模板列表
       templates: [
         {
@@ -602,7 +598,11 @@ export default {
       deleteTemplate: null,
       // 批量启用/停用确认
       batchConfirmVisible: false,
-      batchActionType: ''
+      batchActionType: '',
+      // 单行启用/停用确认
+      rowConfirmVisible: false,
+      rowConfirmTarget: null,
+      rowConfirmAction: ''
     };
   },
   computed: {
@@ -612,11 +612,6 @@ export default {
       return this.templates.filter(t =>
         t.code.toLowerCase().includes(kw) || t.name.toLowerCase().includes(kw)
       );
-    },
-    isAllSelected() {
-      const selectable = this.filteredTemplates.filter(t => !t.isSystem);
-      return selectable.length > 0 &&
-        selectable.every(t => this.selectedRows.includes(t.id));
     },
     displayedProducts() {
       const all = this.allProducts;
@@ -691,40 +686,38 @@ export default {
     },
     // --- 列表操作 ---
     toggleSelectAll(e) {
-      if (e.target.checked) {
-        this.selectedRows = this.filteredTemplates.filter(t => !t.isSystem).map(t => t.id);
-      } else {
-        this.selectedRows = [];
-      }
+      // 保留空方法，避免引用报错（已从 UI 移除全选功能）
     },
     toggleRow(id) {
-      const idx = this.selectedRows.indexOf(id);
-      if (idx >= 0) this.selectedRows.splice(idx, 1);
-      else this.selectedRows.push(id);
+      // 保留空方法（已从 UI 移除行选功能）
     },
     search() {},
-    batchEnable() {
-      if (this.selectedRows.length === 0) return;
-      this.batchActionType = 'enable';
-      this.batchConfirmVisible = true;
+    // 单行启用/停用
+    toggleStatus(tpl) {
+      this.rowConfirmTarget = tpl;
+      this.rowConfirmAction = tpl.status === '启用' ? 'disable' : 'enable';
+      this.rowConfirmVisible = true;
     },
-    batchDisable() {
-      if (this.selectedRows.length === 0) return;
-      this.batchActionType = 'disable';
-      this.batchConfirmVisible = true;
+    confirmRowAction() {
+      if (this.rowConfirmTarget) {
+        this.rowConfirmTarget.status = this.rowConfirmAction === 'enable' ? '启用' : '停用';
+      }
+      this.rowConfirmVisible = false;
+      this.rowConfirmTarget = null;
+      this.rowConfirmAction = '';
     },
+    cancelRowAction() {
+      this.rowConfirmVisible = false;
+      this.rowConfirmTarget = null;
+      this.rowConfirmAction = '';
+    },
+    batchEnable() {},
+    batchDisable() {},
     confirmBatchAction() {
-      this.selectedRows.forEach(id => {
-        const t = this.templates.find(x => x.id === id);
-        if (t) t.status = this.batchActionType === 'enable' ? '启用' : '停用';
-      });
-      this.selectedRows = [];
       this.batchConfirmVisible = false;
-      this.batchActionType = '';
     },
     cancelBatchAction() {
       this.batchConfirmVisible = false;
-      this.batchActionType = '';
     },
 
     // --- 新增/编辑模板 ---
