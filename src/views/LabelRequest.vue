@@ -8,11 +8,6 @@
           <h2>标识申请</h2>
           <small>创建与管理标识申请单，支持提交注册、导出标识数据及下载二维码</small>
         </div>
-        <div class="sub-tabs">
-          <router-link to="/label-request" class="sub-tab active">标识申请</router-link>
-          <router-link to="/label-management" class="sub-tab">标识管理</router-link>
-        </div>
-
         <!-- 筛选栏 -->
         <div class="filter-bar filter-bar-main">
           <div class="filter-item">
@@ -142,10 +137,6 @@
           <h2>标识申请</h2>
           <small>创建与管理标识申请单，支持提交注册、导出标识数据及下载二维码</small>
         </div>
-        <div class="sub-tabs">
-          <router-link to="/label-request" class="sub-tab active">标识申请</router-link>
-          <router-link to="/label-management" class="sub-tab">标识管理</router-link>
-        </div>
 
         <div class="detail-header">
           <button class="btn btn-default" @click="cancelNewApplication">← 返回列表</button>
@@ -230,10 +221,6 @@
         <div class="page-header">
           <h2>标识申请</h2>
           <small>创建与管理标识申请单，支持提交注册、导出标识数据及下载二维码</small>
-        </div>
-        <div class="sub-tabs">
-          <router-link to="/label-request" class="sub-tab active">标识申请</router-link>
-          <router-link to="/label-management" class="sub-tab">标识管理</router-link>
         </div>
 
         <div class="detail-header">
@@ -982,23 +969,6 @@ export default {
 .page-header { padding: 24px 24px 0; }
 .page-header h2 { font-size: 18px; color: #1f2937; margin-bottom: 4px; }
 .page-header small { color: #6b7280; font-size: 13px; }
-
-.sub-tabs {
-  display: flex;
-  padding: 16px 24px 0;
-  border-bottom: 1px solid #e5e7eb;
-}
-.sub-tab {
-  padding: 10px 20px;
-  font-size: 14px;
-  color: #6b7280;
-  text-decoration: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: all 0.2s;
-}
-.sub-tab:hover { color: #1890ff; }
-.sub-tab.active { color: #1890ff; border-bottom-color: #1890ff; font-weight: 500; }
 
 /* ---- 筛选栏 ---- */
 .filter-bar-main {
