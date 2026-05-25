@@ -681,8 +681,8 @@ export default {
   },
   methods: {
     updatePhoneScale() {
-      // panel 宽 480，padding 各 16 → 可用宽 448；header 57px，padding 32px → 可用高 = vh - 89
-      const availW = 448;
+      // panel 宽 520，padding 各 16 → 可用宽 488；header 约 57px，padding 32px → 可用高 = vh - 89
+      const availW = 488;
       const availH = window.innerHeight - 89;
       const scaleW = availW / 402;
       const scaleH = availH / 847;
@@ -1585,7 +1585,7 @@ export default {
   justify-content: flex-end;
 }
 .preview-panel {
-  width: 480px;
+  width: 520px;
   background: #f0f2f5;
   height: 100vh;
   display: flex;
@@ -1620,7 +1620,7 @@ export default {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  width: 402px;
+  width: 100%;
   /* 缩放后的实际占用高度 = 847 * scale，容器需要匹配 */
   height: calc(847px * var(--phone-scale, 1));
   position: relative;
@@ -1739,55 +1739,7 @@ export default {
   color: #9ca3af;
 }
 
-/* ---- 手机外框 ---- */
-.phone-frame {
-  width: 280px;
-  margin: 0 auto;
-  background: #fff;
-  border-radius: 28px;
-  border: 3px solid #1f2937;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-}
-.phone-notch {
-  width: 80px;
-  height: 20px;
-  background: #1f2937;
-  border-radius: 0 0 14px 14px;
-  margin: 0 auto;
-}
-.phone-screen {
-  padding: 8px 16px 16px;
-  min-height: 320px;
-  max-height: 480px;
-  overflow-y: auto;
-}
-.phone-status-bar {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: #1f2937;
-  padding: 4px 0 8px;
-}
-.phone-time {
-  font-weight: 600;
-}
-.phone-title {
-  font-size: 15px;
-  font-weight: 600;
-  text-align: center;
-  color: #1f2937;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #e5e7eb;
-}
-.phone-home-bar {
-  width: 100px;
-  height: 4px;
-  background: #1f2937;
-  border-radius: 2px;
-  margin: 8px auto;
-}
+/* 旧版手机外框样式已移除，以上方 402×847 固定尺寸版本为准 */
 
 /* ---- sticky 操作列 ---- */
 .data-table th.sticky-col,
